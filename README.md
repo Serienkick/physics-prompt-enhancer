@@ -1,5 +1,7 @@
 # Physics Prompt Enhancer · 物理真实感提示词增强器
 
+> **v1.1 新增：** `interaction`（两个客体间的互动写具体、写客观）+ `aesthetic`（物理正确之上的轻量美学点缀）。
+
 > Rewrite a thin, imagination-only prompt into one that obeys real-world physics — and get a
 > machine-checkable **reality checklist** to verify the generated result.
 >
@@ -39,8 +41,14 @@ not the pixel layer. Lightweight, portable, zero cloud GPU cost.
 
 ## Features · 功能
 
-- 🧲 **5 physics dimensions** — optics, mechanics, materials, scale, causality
-  五大物理维度：光学、力学、材质、尺度比例、因果一致
+- 🧲 **7 dimensions** — optics, mechanics, materials, scale, causality, **interaction**, **aesthetic**
+  七大维度：光学、力学、材质、尺度比例、因果一致、**客体间交互**、**美学基调**
+- 🤝 **interaction** — two-object interactions made specific & checkable: relation verb, contact
+  type (point/line/surface), force direction & reaction, material-pair response, observable result
+  客体间交互：把 A/B 两客体的互动写具体、写客观——关系动词、接触类型、力的方向与反作用、材料对响应、可观察结果
+- 🎨 **aesthetic** — light garnish: single visual focus, unified lighting (never breaks optics),
+  ≤3 cohesive hues, depth layers. Physics wins on conflict
+  美学基调：轻量点缀——单一视觉焦点、统一光影（不违反光学）、克制色调、纵深层次；物理优先
 - ✅ **reality checklist** — a JSON list of physics constraints the result *must* satisfy
   现实检查清单：一份结果必须通过的物理约束（JSON）
 - 🔌 **model-agnostic** — works in front of any image/video/3D generator
@@ -104,7 +112,7 @@ python scripts/enhance.py PROMPT [options]
 
   PROMPT                     base creative prompt / 基础提示词（必填）
   --target   {image,video,3d}   generation target (default image) / 目标类型
-  --dims    csv                subset of: optics,mechanics,materials,scale,causality
+  --dims    csv                subset of: optics,mechanics,materials,scale,causality,interaction,aesthetic
   --lang    {zh,en,both}        output language (default both) / 输出语言
   --model   name               Ollama model tag (default qwen3:4b)
   --endpoint url               OpenAI-compatible base URL (default http://localhost:11434/v1)
@@ -121,7 +129,7 @@ python scripts/enhance.py "..." --endpoint http://localhost:1234/v1   # LM Studi
 
 ---
 
-## The 5 physics dimensions · 五大物理维度
+## The 7 dimensions · 七大维度
 
 | Dimension | Inject · 注入 | Checklist rule · 检查项 |
 |---|---|---|
@@ -130,10 +138,14 @@ python scripts/enhance.py "..." --endpoint http://localhost:1234/v1   # LM Studi
 | **materials** 材质 | per-material response (metal reflects, glass refracts, cloth drapes) | surface look matches stated material; no "plastic AI sheen" |
 | **scale** 尺度 | real relative sizes; consistent vanishing point; depth order | sizes self-consistent; one perspective system |
 | **causality** 因果 | explicit cause→effect (splash⇒impact, bent⇒force) | every effect has a cause present in frame; no teleporting |
+| **interaction** 交互 | A/B relation verb; contact type (point/line/surface); force direction & reaction; material-pair response; observable result (dent/splash/hug) | relation recognizable; contact & area self-consistent; B moves/ deforms along A's force; reaction evidence at contact |
+| **aesthetic** 美学 | single visual focus; unified lighting (physics-safe); ≤3 cohesive hues; atmospheric perspective / shallow DoF | one clear focus; shadows still pass optics; restrained palette; depth layers |
 
 For `video`, the checklist also gains temporal rules: trajectory continuity, motion-blur direction,
-secondary motion (hair/cloth lag), and conservation (no spawn/despawn without cause).
-视频额外含时序规则：轨迹连续、运动模糊方向、次级运动（头发/布料滞后）、守恒（无凭空出现/消失）。
+secondary motion (hair/cloth lag), and conservation (no spawn/despawn without cause), plus
+interaction continuity (contact deformation/splash/rebound consistent across frames).
+视频额外含时序规则：轨迹连续、运动模糊方向、次级运动（头发/布料滞后）、守恒（无凭空出现/消失），
+以及交互连续（接触变形/水花/反弹在帧间一致，无穿模/粘连漂移）。
 
 ---
 
@@ -144,13 +156,15 @@ The script prints one JSON object with two keys:
 
 ```json
 {
-  "enhanced_prompt": "一只橘猫后腿蹬地蓄力，身体沿抛物线向前上方腾起……\n\nEN: a ginger cat leaping onto a wooden table, crouch-then-launch, parabolic arc, key light upper-left, soft contact shadow beneath, matte PBR wood grain no plastic sheen, correct scale, landing impact dent",
+  "enhanced_prompt": "一位棒球运动员挥棒击向飞来的棒球，球与球棒在接触点发生明显压缩变形……\n\nEN: a batter swinging a bat to hit an incoming baseball, point contact, ball compresses at impact and rebounds along the swing direction, momentum transfer at contact, single key light upper-right, cohesive palette, rule-of-thirds focus on the contact point, shallow depth of field",
   "reality_checklist": [
-    {"dimension": "optics",    "rule": "阴影统一来自左上单一光源",      "pass_criteria": "猫与桌底阴影方向一致，光源侧受光"},
-    {"dimension": "mechanics", "rule": "猫呈抛物线起跳，落桌处有冲击",  "pass_criteria": "可见蹬地蓄力与落地压痕"},
-    {"dimension": "materials", "rule": "木桌为哑光木纹",              "pass_criteria": "无塑料高光，木纹清晰"},
-    {"dimension": "scale",     "rule": "猫与桌比例真实",              "pass_criteria": "猫约为桌高一半"},
-    {"dimension": "causality", "rule": "起跳有因、落地有果",          "pass_criteria": "蹬地为因，接触压痕为果"}
+    {"dimension": "optics",       "rule": "阴影统一来自单一光源，无冲突打光",            "pass_criteria": "人与球阴影方向一致，光源侧受光"},
+    {"dimension": "mechanics",    "rule": "球沿挥棒方向反弹，轨迹符合动量传递",        "pass_criteria": "球反弹方向=挥棒方向，无凭空变向"},
+    {"dimension": "materials",    "rule": "球棒木纹哑光、棒球皮革质感",                "pass_criteria": "无塑料高光，皮革缝合线清晰"},
+    {"dimension": "scale",        "rule": "棒球尺寸与握棒手势比例真实",                "pass_criteria": "球约拳头大小，棒身粗细合理"},
+    {"dimension": "causality",    "rule": "击打(因)→球变形/反弹(果)",                  "pass_criteria": "击打前有完整挥棒动作"},
+    {"dimension": "interaction",  "rule": "球棒与球为点接触，球沿挥棒方向反弹，接触处有压缩变形", "pass_criteria": "A(球棒)施力方向→B(球)位移方向一致；接触点有球体凹陷"},
+    {"dimension": "aesthetic",    "rule": "视觉焦点在接触点，光影氛围统一且不违反光学",  "pass_criteria": "主色调≤3且统一，焦点明确，背景虚化"}
   ]
 }
 ```
@@ -161,16 +175,17 @@ The script prints one JSON object with two keys:
 
 **Base · 原提示词**
 ```
-一只猫跳上木桌
+运动员挥棒击打飞来的棒球
 ```
 
 **Enhanced · 增强后**
-> 一只橘猫后腿蹬地蓄力，身体沿抛物线向前上方腾起，前爪伸展准备落桌；统一来自左上窗光的柔和阴影，桌底与猫身下有接触阴影；木桌为哑光木纹、无塑料高光；猫与桌比例真实，单一透视；起跳前有蹬地（因），落桌有接触压痕（果）。
+> 一位棒球运动员侧身挥棒，击向空中旋转飞来的棒球——球棒与球在**点接触**处相撞，球体沿挥棒方向被压缩并反弹，接触点扬起细小尘土；统一来自右上主光的明暗对比，人与球在地面投下方向一致的阴影；球棒木纹哑光、棒球皮革缝合线清晰；球约拳头大小，与握棒比例真实；击打（因）→ 球变形反弹（果）。构图以接触点为视觉焦点，背景观众席虚化，整体色调克制统一。
 >
-> EN: `a ginger cat leaping onto a wooden table, crouch-then-launch, parabolic arc, key light upper-left, soft contact shadow beneath, matte PBR wood grain no plastic sheen, correct scale, landing impact dent`
+> EN: `a batter swinging a bat to hit an incoming baseball, point contact, ball compresses at impact and rebounds along the swing direction, momentum transfer at contact, key light upper-right, cohesive palette, rule-of-thirds focus on the contact point, shallow depth of field`
 
 **reality_checklist** — see the JSON above. Use it to accept/reject the generated image.
 用清单验收生成图：哪一项不达标就重生成或调提示词。
+> 💡 v1.1 亮点：`interaction` 项把「运动员/棒球」两个客体的接触类型、力的方向、反作用结果都写成**可逐项核对**的验收项；`aesthetic` 只加视觉焦点/色调/景深，不破坏物理。
 
 ---
 
@@ -232,7 +247,7 @@ physics-prompt-enhancer/
 ├── SKILL.md                      # skill definition: workflow + trigger + checklist spec
 ├── README.md                     # this file
 ├── references/
-│   └── physics_dimensions.md     # 5-dimension knowledge core + video rules + fallback template
+│   └── physics_dimensions.md     # 7-dimension knowledge core + video rules + fallback template
 └── scripts/
     └── enhance.py                # local 5B LLM engine (Ollama/LM Studio) + rule-based fallback
 ```
