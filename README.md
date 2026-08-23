@@ -42,23 +42,23 @@ not the pixel layer. Lightweight, portable, zero cloud GPU cost.
 ## Features · 功能
 
 - 🧲 **7 dimensions** — optics, mechanics, materials, scale, causality, **interaction**, **aesthetic**
-  七大维度：光学、力学、材质、尺度比例、因果一致、**客体间交互**、**美学基调**
+- 七大维度：光学、力学、材质、尺度比例、因果一致、**客体间交互**、**美学基调**
 - 🤝 **interaction** — two-object interactions made specific & checkable: relation verb, contact
   type (point/line/surface), force direction & reaction, material-pair response, observable result
-  客体间交互：把 A/B 两客体的互动写具体、写客观——关系动词、接触类型、力的方向与反作用、材料对响应、可观察结果
+- 客体间交互：把 A/B 两客体的互动写具体、写客观——关系动词、接触类型、力的方向与反作用、材料对响应、可观察结果
 - 🎨 **aesthetic** — light garnish: single visual focus, unified lighting (never breaks optics),
   ≤3 cohesive hues, depth layers. Physics wins on conflict
-  美学基调：轻量点缀——单一视觉焦点、统一光影（不违反光学）、克制色调、纵深层次；物理优先
+- 美学基调：轻量点缀——单一视觉焦点、统一光影（不违反光学）、克制色调、纵深层次；物理优先
 - ✅ **reality checklist** — a JSON list of physics constraints the result *must* satisfy
-  现实检查清单：一份结果必须通过的物理约束（JSON）
+- 现实检查清单：一份结果必须通过的物理约束（JSON）
 - 🔌 **model-agnostic** — works in front of any image/video/3D generator
-  模型无关：架在任意生图 / 生视频 / 3D 工具前都能用
+- 模型无关：架在任意生图 / 生视频 / 3D 工具前都能用
 - 🖥️ **local 5B LLM** — preferred engine runs on Ollama / LM Studio, free & private
-  本地 5B 模型：推荐 Ollama / LM Studio 跑本地模型，免费且私有
+- 本地 5B 模型：推荐 Ollama / LM Studio 跑本地模型，免费且私有
 - 🪢 **rule-based fallback** — still works offline with no model installed
-  规则兜底：没装模型也能离线出活
+- 规则兜底：没装模型也能离线出活
 - 🌏 **bilingual output** — Chinese prose + a compact English tag string for generators
-  中英双输出：中文散文 + 可直接粘贴进生成器的英文 tag 串
+- 中英双输出：中文散文 + 可直接粘贴进生成器的英文 tag 串
 
 ---
 
