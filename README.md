@@ -1,5 +1,7 @@
 # Physics Prompt Enhancer · 物理真实感提示词增强器
 
+> **v1.2 新增：** 交互升级为「接触叙事」——写清接触状态（已接触/未接触/即将接触）、接触媒介（直接/工具/介质/接近未触）、动作过程（追逐=逼近→闪避→接触或未接触）；增强后自动审校去重，删语义重复、只留更具体句。
+>
 > **v1.1 新增：** `interaction`（两个客体间的互动写具体、写客观）+ `aesthetic`（物理正确之上的轻量美学点缀）。
 
 > Rewrite a thin, imagination-only prompt into one that obeys real-world physics — and get a
@@ -43,9 +45,13 @@ not the pixel layer. Lightweight, portable, zero cloud GPU cost.
 
 - 🧲 **7 dimensions** — optics, mechanics, materials, scale, causality, **interaction**, **aesthetic**
 - 七大维度：光学、力学、材质、尺度比例、因果一致、**客体间交互**、**美学基调**
-- 🤝 **interaction** — two-object interactions made specific & checkable: relation verb, contact
-  type (point/line/surface), force direction & reaction, material-pair response, observable result
-- 客体间交互：把 A/B 两客体的互动写具体、写客观——关系动词、接触类型、力的方向与反作用、材料对响应、可观察结果
+- 🤝 **interaction** — written as a "contact narrative": contact state (contacted / not
+  contacted / about to contact), contact medium (direct / via tool / through medium / proximity),
+  action dynamics (chase = approach→dodge→close or miss)
+- 客体间交互：「接触叙事」——接触状态（已接触/未接触/即将接触）、接触媒介（直接/工具/介质/接近未触）、动作过程（追逐=逼近→闪避→接触或未接触）。**到底接触没有、怎么接触的、通过什么方式**
+- 🧹 **self-reviewed & deduped** — after enhancement the prompt is re-examined: redundant
+  phrasing is dropped, only the more specific sentence stays
+- 自动审校去重：增强后重新审视语句，删除语义重复，只保留更具体的表述
 - 🎨 **aesthetic** — light garnish: single visual focus, unified lighting (never breaks optics),
   ≤3 cohesive hues, depth layers. Physics wins on conflict
 - 美学基调：轻量点缀——单一视觉焦点、统一光影（不违反光学）、克制色调、纵深层次；物理优先
@@ -138,7 +144,7 @@ python scripts/enhance.py "..." --endpoint http://localhost:1234/v1   # LM Studi
 | **materials** 材质 | per-material response (metal reflects, glass refracts, cloth drapes) | surface look matches stated material; no "plastic AI sheen" |
 | **scale** 尺度 | real relative sizes; consistent vanishing point; depth order | sizes self-consistent; one perspective system |
 | **causality** 因果 | explicit cause→effect (splash⇒impact, bent⇒force) | every effect has a cause present in frame; no teleporting |
-| **interaction** 交互 | A/B relation verb; contact type (point/line/surface); force direction & reaction; material-pair response; observable result (dent/splash/hug) | relation recognizable; contact & area self-consistent; B moves/ deforms along A's force; reaction evidence at contact |
+| **interaction** 交互 | contact narrative: contact state (contacted/not/about-to-contact); medium (direct/via tool/through medium/proximity); action dynamics; contact type; reaction force | can judge whether A & B actually touched; if contacted → contact point & way identifiable; if not → clear gap, no fake-contact marks |
 | **aesthetic** 美学 | single visual focus; unified lighting (physics-safe); ≤3 cohesive hues; atmospheric perspective / shallow DoF | one clear focus; shadows still pass optics; restrained palette; depth layers |
 
 For `video`, the checklist also gains temporal rules: trajectory continuity, motion-blur direction,
@@ -156,14 +162,14 @@ The script prints one JSON object with two keys:
 
 ```json
 {
-  "enhanced_prompt": "一位棒球运动员挥棒击向飞来的棒球，球与球棒在接触点发生明显压缩变形……\n\nEN: a batter swinging a bat to hit an incoming baseball, point contact, ball compresses at impact and rebounds along the swing direction, momentum transfer at contact, single key light upper-right, cohesive palette, rule-of-thirds focus on the contact point, shallow depth of field",
+  "enhanced_prompt": "一位棒球运动员挥棒击向飞来的棒球，球与球棒在接触点被压缩并沿挥棒方向反弹……\n\nEN: a batter swinging a bat to hit an incoming baseball, point contact, ball compresses at impact and rebounds along the swing direction, single key light upper-right, cohesive palette, rule-of-thirds focus on the contact point, shallow depth of field",
   "reality_checklist": [
     {"dimension": "optics",       "rule": "阴影统一来自单一光源，无冲突打光",            "pass_criteria": "人与球阴影方向一致，光源侧受光"},
     {"dimension": "mechanics",    "rule": "球沿挥棒方向反弹，轨迹符合动量传递",        "pass_criteria": "球反弹方向=挥棒方向，无凭空变向"},
     {"dimension": "materials",    "rule": "球棒木纹哑光、棒球皮革质感",                "pass_criteria": "无塑料高光，皮革缝合线清晰"},
     {"dimension": "scale",        "rule": "棒球尺寸与握棒手势比例真实",                "pass_criteria": "球约拳头大小，棒身粗细合理"},
     {"dimension": "causality",    "rule": "击打(因)→球变形/反弹(果)",                  "pass_criteria": "击打前有完整挥棒动作"},
-    {"dimension": "interaction",  "rule": "球棒与球为点接触，球沿挥棒方向反弹，接触处有压缩变形", "pass_criteria": "A(球棒)施力方向→B(球)位移方向一致；接触点有球体凹陷"},
+    {"dimension": "interaction",  "rule": "接触状态=已接触：球棒与球为点接触，球沿挥棒方向反弹并压缩变形", "pass_criteria": "画面可指认接触点（球与球棒贴合处）；A(球棒)施力方向→B(球)位移方向一致；接触点有球体凹陷"},
     {"dimension": "aesthetic",    "rule": "视觉焦点在接触点，光影氛围统一且不违反光学",  "pass_criteria": "主色调≤3且统一，焦点明确，背景虚化"}
   ]
 }
@@ -175,17 +181,17 @@ The script prints one JSON object with two keys:
 
 **Base · 原提示词**
 ```
-运动员挥棒击打飞来的棒球
+猫追逐蝴蝶
 ```
 
-**Enhanced · 增强后**
-> 一位棒球运动员侧身挥棒，击向空中旋转飞来的棒球——球棒与球在**点接触**处相撞，球体沿挥棒方向被压缩并反弹，接触点扬起细小尘土；统一来自右上主光的明暗对比，人与球在地面投下方向一致的阴影；球棒木纹哑光、棒球皮革缝合线清晰；球约拳头大小，与握棒比例真实；击打（因）→ 球变形反弹（果）。构图以接触点为视觉焦点，背景观众席虚化，整体色调克制统一。
+**Enhanced · 增强后（v1.2：接触叙事 + 审校去重）**
+> 一只橘猫在花园中压低前身扑向蝴蝶，前爪前伸但**始终未触及**蝶翅（接触状态=未接触）：猫逼近→蝶侧向闪避→距离未归零；统一来自左上主光的阴影，猫与地面有接触阴影；蝶翅半透明、猫毛有层次；蝶约猫掌大小，比例真实；扑击（因）→ 蝶转向（果）。构图以猫与蝶之间的空隙为焦点，背景虚化，色调克制。
 >
-> EN: `a batter swinging a bat to hit an incoming baseball, point contact, ball compresses at impact and rebounds along the swing direction, momentum transfer at contact, key light upper-right, cohesive palette, rule-of-thirds focus on the contact point, shallow depth of field`
+> EN: `a cat chasing a butterfly in a sunny garden, key light upper-left, cat lunges with paw extended but butterfly stays out of reach (not contacted), chase dynamics: cat closes in, butterfly veers away, gap remains, correct scale, rim light, shallow depth of field on the pair`
 
 **reality_checklist** — see the JSON above. Use it to accept/reject the generated image.
 用清单验收生成图：哪一项不达标就重生成或调提示词。
-> 💡 v1.1 亮点：`interaction` 项把「运动员/棒球」两个客体的接触类型、力的方向、反作用结果都写成**可逐项核对**的验收项；`aesthetic` 只加视觉焦点/色调/景深，不破坏物理。
+> 💡 v1.2 亮点：交互不再只写「追逐」两个字，而是交代**接触状态（未接触）→ 接触媒介（接近未触）→ 动作过程（逼近→闪避→距离未归零）**；验收时一眼判断猫爪与蝶之间有没有空隙、有没有「假接触」。增强语句已去重——同一含义只保留更具体的一句，不换词说两遍。
 
 ---
 

@@ -36,20 +36,22 @@ DEFAULT_MODEL = "qwen3:4b"
 SYSTEM_PROMPT = """你是一个「物理真实感提示词增强器」。用户给你一句基础创意提示词，你要：
 1) 在不添加新主体、不改变用户原意的前提下，补入符合现实物理规律的描述（光照/重力/材质/尺度/因果/客体间交互/美学基调）；
 2) 推理物理而不是堆形容词：推断重力方向、预测运动轨迹、写出因果链；
-3) 若提示词含两个及以上客体（A 与 B），把「客体间交互」写具体、写客观（双客体时本项优先）：
-   - 明确关系动词：接触/碰撞/支撑/悬挂/堆叠/嵌入/包裹/拖拽/推拉/投掷/击打/摩擦/分离；
-   - 明确接触类型：点接触/线接触/面接触，并说明接触面积（面积越小→压强越大→尖细处易凹陷穿透）；
-   - 明确力的方向与反作用：B 的位移/变形方向与 A 施力方向一致，接触处有反作用证据（A 推 B，B 沿推力方向动，A 姿态发力）；
-   - 说明材料对响应：硬-硬（碰撞反弹或破损）、软-硬（软物贴合包裹硬物）、软-软（双方同时变形）；
-   - 给出可观察结果：压痕/水花/尘土/摩擦痕迹/绷直的吊绳/贴合轮廓；
-4) 在物理正确的基础上轻量加入美学基调：单一视觉焦点、统一光影氛围（不得违反光学检查）、
-   2~3 色和谐主色调、纵深层次（空气透视/浅景深）。美学不得引入画面内不存在的元素，物理优先；
-5) 输出两部分：
-   - "enhanced_prompt": 自然语言增强提示词（按 lang 决定中英；both 时先中文散文再给英文 tag 串，英文 tag 不超过 60 token）；
-   - "reality_checklist": JSON 数组，每项 {dimension, rule, pass_criteria}，覆盖用户指定的维度；
-     interaction 项的 rule/pass_criteria 必须具体到 A/B 两客体，是能在画面中逐项对照核对的客观验收项，不是形容词；
-6) 若原提示词本身物理上不可能（如反重力），保留它但在 checklist 里标出矛盾；
-7) 只输出一个 JSON 对象，不要多余解释。"""
+3) 若提示词含两个及以上客体（A 与 B），把「客体间交互」写成可逐项核对的「接触叙事」，必须明确三点：
+   a. 接触状态（三者必居其一，判定依据=画面中是否存在真实接触点）：
+      - 已接触：画面存在 A 与 B 的实际接触点（贴合/相撞/抓握成功），写明接触点位置与接触后状态；
+      - 未接触：画面中 A 与 B 从未相碰（追逐未追上、扑抓落空、对峙、隔空相对），写明两者间距；
+      - 即将接触：未接触但运动趋势指向接触（距离持续缩短、肢体/物体朝向接触点）；
+      判定规则：『试图抓取』『扑向但落空』『追逐未追上』都属于未接触或即将接触，绝不算已接触——只有画面里真的碰到才算；
+   b. 接触媒介/方式：直接接触（身体/表面直接贴合，如手抓、脚踩、碰撞）/ 工具中介（经第三方物体，如球棒击球、绳拉重物）/ 介质传递（经流体或场，如风推帆、水冲砂）/ 接近未触（只接近不触碰）；
+   c. 动作过程（把关系动词展开成动作变化序列）：如「追逐」= 追者逼近→被追者闪避→距离缩短/拉开→最终接触或未接触；「撞击」= 加速→接触点→位移/变形；「扑抓」= 伸展肢体→接触瞬间→抓住或落空；
+   同时写清接触类型（点/线/面）与接触面积（面积越小→压强越大→尖细处易凹陷穿透）、力的方向与反作用、材料对响应、可观察结果（压痕/水花/尘土/贴合轮廓）；
+4) 在物理正确的基础上轻量加入美学基调：单一视觉焦点、统一光影氛围（不得违反光学检查）、2~3 色和谐主色调、纵深层次（空气透视/浅景深）。美学不得引入画面内不存在的元素，物理优先；
+5) 输出前【重新审视审校】enhanced_prompt：删除语义重复的表述——同一物理含义只保留一种说法，且保留更具体的那句（例如「球沿挥棒方向反弹并压缩变形」与「动量在接触点传递」同义时只留前者）；确保每一句都在提供新信息，避免「换词说两遍」；
+6) 输出两部分：
+   - "enhanced_prompt": 自然语言增强提示词（按 lang 决定中英；both 时先中文散文再给英文 tag 串，英文 tag 不超过 60 token，且无重复表述）；
+   - "reality_checklist": JSON 数组，每项 {dimension, rule, pass_criteria}，覆盖用户指定的维度；interaction 项的 rule 必须以「接触状态=已接触/未接触/即将接触」开头（只写判定出的那一个，不罗列候选），pass_criteria 写明接触媒介与接触点/过程，是能在画面中逐项对照核对的客观验收项，不是形容词；
+7) 若原提示词本身物理上不可能（如反重力），保留它但在 checklist 里标出矛盾；
+8) 只输出一个 JSON 对象，不要多余解释。"""
 
 DIMS = ["optics", "mechanics", "materials", "scale", "causality", "interaction", "aesthetic"]
 
@@ -60,7 +62,7 @@ FALLBACK_PHRASES = {
     "materials": "PBR-accurate materials, metal reflects, glass refracts, cloth drapes with gravity sag, micro skin detail, no plastic sheen",
     "scale": "correct relative scale, single vanishing point, believable perspective",
     "causality": "visible cause for every effect, motion trail matches path, impact splash at contact",
-    "interaction": "explicit A-B contact (point/line/surface), reaction force opposing the push, soft object deforms to hug the rigid one, momentum transfer at contact, dent/splash/dust at impact",
+    "interaction": "explicit A-B contact narrative: contact state (contacted / not contacted / about to contact), contact medium (direct / via tool / through medium / proximity only), action dynamics (chase = approach to dodge to close or miss), point/line/surface contact, reaction force, dent/splash/dust at impact",
     "aesthetic": "cinematic key light with subtle rim light, rule-of-thirds composition, cohesive 2-3 color palette, atmospheric perspective, shallow depth of field on the subject",
 }
 FALLBACK_RULE = {
@@ -69,7 +71,7 @@ FALLBACK_RULE = {
     "materials": ("表面质感符合所述材质", "金属反光、玻璃透射、布料下垂、皮肤有毛孔"),
     "scale": ("物体相对尺寸自洽，透视单一", "各物体相对大小符合现实比例，近大远小，平行线汇聚于单一消失点"),
     "causality": ("每个效果都有画面内的物理原因", "水花必有冲击，倾倒必有受力方向"),
-    "interaction": ("两个客体的关系动词可识别，接触类型与力的方向自洽", "A 与 B 接触处有可观察反应（贴合/压痕/水花/反作用位移），B 位移方向与 A 施力方向一致"),
+    "interaction": ("两个客体的交互写清接触状态（已接触/未接触/即将接触）、接触媒介与动作过程", "画面可判断 A 与 B 到底接触没有：已接触→接触点与方式可指认，接触处有反应（贴合/压痕/水花）；未接触→两者间有明确空隙；接触处有可观察反应"),
     "aesthetic": ("有明确视觉焦点，光影氛围统一且不违反光学检查", "主体一眼可辨，主色调不超过3且统一，近清远朦有纵深"),
 }
 

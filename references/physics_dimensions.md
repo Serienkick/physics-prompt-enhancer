@@ -9,6 +9,8 @@ image models (e.g. ChronoEdit's PBench-Edit: gravity, support contact, trajector
 consistency, causal effect). This skill applies them at the *prompt* layer instead of the
 *pixel* layer.
 
+**v1.2 (2026-08-23):** Interaction 深化为「接触叙事」——接触状态（已接触/未接触/即将接触）
++ 接触媒介（直接/工具/介质/接近未触）+ 动作过程（追逐=逼近→闪避→接触或未接触）。
 **v1.1 (2026-08-23):** + `interaction` (客体间交互：把两个客体的互动写具体、写客观)；
 + `aesthetic` (美学基调：在物理正确之上轻量点缀，物理优先)。
 
@@ -92,33 +94,52 @@ smoke rises from its emitter.
 
 ---
 
-## 6. Interaction (客体间交互) ★ v1.1 新增
+## 6. Interaction (客体间交互) ★ v1.1 新增 · v1.2 接触叙事化
 **适用:** 基础提示词含**两个及以上客体**（A 与 B）发生 接触/碰撞/支撑/悬挂/堆叠/嵌入/
-包裹/拖拽/推拉/投掷/击打/摩擦/分离 等关系。**一旦存在双客体，本维度优先**——交互写不
-具体，其余物理再对也"假"。
+包裹/拖拽/推拉/投掷/击打/摩擦/分离/追逐 等关系。**一旦存在双客体，本维度优先**——交互写
+不具体，其余物理再对也"假"。
 
-**Inject —— 结构化字段（把交互写具体、写客观的模板）:**
-- **关系动词**：接触 / 碰撞 / 支撑 / 悬挂 / 堆叠 / 嵌入 / 包裹 / 拖拽 / 推拉 / 投掷 / 击打 / 摩擦 / 分离
-- **接触类型**：点接触（球/指尖）/ 线接触（圆柱横放/刀刃）/ 面接触（平放/贴合）；
-  接触面积越小→压强越大→尖细处易凹陷/穿透
+**核心：把交互写成「接触叙事」，回答三个问题——**
+
+**① 接触状态（到底接触过没有，三者必居其一）:**
+- **已接触**（contacted）：A 与 B 实际发生物理接触；写明接触点与接触后状态
+- **未接触**（not contacted）：从未触碰，仅在空间上接近（追逐/对峙/隔空相对）；写明间距与趋势
+- **即将接触**（about to contact）：运动趋势表明下一秒将接触（距离在缩短、相对速度指向接触点）
+
+**② 接触媒介/方式（怎么接触的）:**
+- **直接接触**（direct）：身体/表面直接贴合——手抓、脚踩、碰撞、拥抱、堆叠
+- **工具中介**（via tool）：经第三方物体传递——球棒击球、绳拉重物、手持刀刃、杠杆撬动
+- **介质传递**（through medium）：经流体或场——风推帆、水冲砂、冲击波掀桌、热传导
+- **接近未触**（proximity only）：只接近不触碰——对峙、追逐未追上、虎视
+
+**③ 动作过程（把关系动词展开成动作变化序列）:**
+- 追逐：追者逼近（前倾/加速）→ 被追者闪避（转向/提速）→ 距离缩短或拉开 → 最终接触或未接触
+- 撞击：加速冲向 → 接触点 → B 位移/变形/反弹
+- 扑抓：伸展肢体 → 接触瞬间 → 抓住（已接触）或落空（未接触）
+- 推拉：施力方向 → B 位移 → 反作用
+- 悬挂：挂上 → 绳绷直 → 重物沿重力下垂
+
+**同时写清（沿用 v1.1 字段）:**
+- **接触类型**：点接触（球/指尖）/ 线接触（圆柱横放/刀刃）/ 面接触（平放/贴合）；接触面积越小→压强越大→尖细处易凹陷/穿透
 - **力的方向与反作用**：A 对 B 施力方向明确；B 对 A 等大反向（推者姿态发力、被推者沿力方向位移）
-- **相对运动学**：相对速度与方向（追/撞/擦/拖/推/拉）；动量沿接触点传递（多米诺/链式）
 - **材料对响应**：硬-硬（碰撞反弹/可能破损）；软-硬（软物贴合变形包裹硬物）；软-软（双方同时变形）
 - **可观察结果**：压痕 / 凹陷 / 水花 / 尘土 / 摩擦痕迹 / 绷直的吊绳 / 贴合轮廓
 
-**Descriptor phrases (EN):** `explicit A-B contact (point/line/surface), reaction force opposing
-the push, soft object deforms to hug the rigid one, momentum transfer at the contact point,
-dent/splash/dust at the impact site`
+**Descriptor phrases (EN):** `explicit A-B contact narrative: contact state (contacted / not
+contacted / about to contact), contact medium (direct / via tool / through medium / proximity
+only), action dynamics (chase = approach to dodge to close or miss), point/line/surface
+contact, reaction force, dent/splash/dust at impact`
 
-**Checklist rule:** 画面中能识别 A 与 B 的关系动词；接触类型与接触面积自洽；
-B 的位移/变形方向与 A 施力方向一致；接触处有反作用证据。
+**Checklist rule:** 画面中能识别 A 与 B 的关系与动作；**能判断二者到底接触没有**；
+若已接触——接触点/媒介/方式可指认，接触处有反作用证据；若未接触——两者间有明确空隙且无虚假粘连痕迹。
 
 **Pass criteria（逐项对照画面核对）:**
-- A 压在 B 上 → 接触面形状贴合 B 的承托轮廓，B 无明显反物理悬空
-- A 撞 B → B 沿 A 运动方向位移；接触点有变形/水花/尘土
+- 已接触（碰撞/击打）→ B 沿 A 运动方向位移，接触点有变形/水花/尘土，接触方式可指认（直接撞上 / 经球棒击中）
+- 已接触（支撑/堆叠）→ 接触面形状贴合承托轮廓，无悬空
+- 未接触（追逐/对峙）→ A 与 B 之间有可见空隙；追者前倾、被追者闪避；**不得画出"假接触"（没有接触却留接触痕迹）**
+- 即将接触 → 距离在缩短，肢体/物体朝向接触点，下一秒趋势明显
 - 软物裹硬物 → 软物轮廓贴合硬物边缘并因重力下垂
 - 悬挂 → 吊绳绷直、重物沿重力方向下垂
-- 堆叠 → 上层重心在下层承托面内（稳定）或表现为倾倒趋势（不稳）
 - 尖锐物压软物 → 接触点出现与尖端形状一致的凹陷
 
 ---
@@ -160,19 +181,19 @@ When `target == video`, append temporal rules to the checklist:
 When no LLM is present, append the EN descriptor phrases of the selected dimensions to the base
 prompt and emit one checklist item per selected dimension using its `rule` + `pass_criteria`.
 
-Example (image, all dims, base "运动员挥棒击打飞来的棒球"):
+Example (image, all dims, base "猫追逐蝴蝶"):
 
-Enhanced (EN tag): `a batter swinging a bat to hit an incoming baseball, single key light from
-upper left, physically correct cast shadows, bat and ball meet at a point contact with the ball
-rebounding along the bat swing direction, momentum transfer at the contact point, impact seam
-deformation on the ball, correct scale, visible swing cause and rebound effect, cinematic key
-light with subtle rim light, rule-of-thirds composition, cohesive palette, shallow depth of field`
+Enhanced (EN tag): `a cat chasing a butterfly in a sunny garden, single key light upper-left,
+physically correct cast shadows, cat lunges with front paw extended but the butterfly stays out
+of reach (not contacted), chase dynamics: cat closes in, butterfly veers away, gap remains,
+correct scale, visible cause and effect, cinematic rim light, shallow depth of field on the pair`
 
 Checklist (zh):
-- 光学: 阴影统一来自单一光源，人与地面有接触阴影
-- 力学: 球沿挥棒方向反弹，轨迹符合动量传递
-- 材质: 球棒木纹哑光、棒球皮革质感，无塑料高光
-- 尺度: 棒球尺寸与握棒手势比例真实（约拳头大小）
-- 因果: 击打（因）→ 球变形/反弹（果），击打前有挥棒动作
-- 交互: 球棒与球为**点接触**；球反弹方向 = 球棒挥击方向；接触处有球的压缩变形
-- 美学: 视觉焦点在接触点；主光+轮廓光氛围统一；主色调克制
+- 光学: 阴影统一来自单一光源，猫与地面有接触阴影
+- 力学: 猫的扑跃呈抛物线，未接触前保持运动趋势
+- 材质: 猫毛层次、蝶翅半透明质感，无塑料高光
+- 尺度: 猫与蝴蝶大小比例真实（蝶约猫掌大小）
+- 因果: 猫扑击（因）→ 蝶转向闪避（果）
+- 交互: 接触状态=**未接触**；媒介=接近未触；动作过程=猫前扑→蝶转向→距离未归零；
+  验收：画面中猫爪与蝶之间有明显空隙，无「假接触」痕迹（未接触却留接触印）
+- 美学: 视觉焦点在猫与蝶之间，主光+轮廓光，景深聚焦二者

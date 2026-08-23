@@ -1,10 +1,10 @@
 ---
 name: physics-prompt-enhancer
-description: Rewrite a base creative prompt into a physics-grounded prompt plus a structured reality checklist, so AI image/video/3D generation looks physically plausible (correct gravity, lighting, materials, trajectory, causal consistency) — including concretely specified two-object interactions (contact type, force direction, reaction) and a light aesthetic touch (focus, unified lighting, restrained palette). Use when the user wants a prompt to feel "real", "physical", "not AI-plastic", asks to add physics/realism factors, make two objects' interaction more specific, or add a bit of aesthetics without losing realism. Model-agnostic; runs on a local 5B-class LLM (Ollama/LM Studio) with a rule-based fallback.
+description: Rewrite a base creative prompt into a physics-grounded prompt plus a structured reality checklist, so AI image/video/3D generation looks physically plausible (correct gravity, lighting, materials, trajectory, causal consistency) — including concretely specified two-object interactions written as a "contact narrative" (contact state: contacted / not contacted / about to contact; contact medium: direct / via tool / through medium / proximity; action dynamics like chase = approach→dodge→close or miss), and a light aesthetic touch (focus, unified lighting, restrained palette). The enhanced prompt is self-reviewed to drop redundant phrasing, keeping only the more specific sentence. Use when the user wants a prompt to feel "real", "physical", "not AI-plastic", asks to add physics/realism factors, make two objects' interaction more specific (did they actually touch? how? through what?), or add a bit of aesthetics without losing realism. Model-agnostic; runs on a local 5B-class LLM (Ollama/LM Studio) with a rule-based fallback.
 metadata:
   author: codexclaw
-  version: "1.1"
-  tags: [prompt, physics, realism, interaction, aesthetic, image-generation, video-generation, 3d, local-llm]
+  version: "1.2"
+  tags: [prompt, physics, realism, interaction, aesthetic, contact-narrative, image-generation, video-generation, 3d, local-llm]
 ---
 
 # Physics Prompt Enhancer (物理真实感提示词增强器)
@@ -52,7 +52,7 @@ A JSON array; each item has `dimension`, `rule` (human-readable), and `pass_crit
 - `materials` — surface response matches stated material (metal reflects, glass transmits, fabric drapes, skin has pores).
 - `scale` — relative sizes and perspective are self-consistent; no floating/missing contact shadows.
 - `causality` — depicted action has a physically valid cause→effect (splash implies impact; bent object implies force).
-- `interaction` (客体间交互，双客体时优先) — 明确 A/B 的关系动词（接触/碰撞/支撑/悬挂/堆叠/嵌入/包裹/拖拽/推拉/投掷/击打/摩擦/分离）；接触类型（点/线/面）与接触面积自洽；B 的位移/变形方向与 A 施力方向一致，接触处有反作用证据（压痕/水花/贴合/绷直的绳）。pass_criteria 必须具体到 A/B，可在画面中逐项核对，不是形容词。
+- `interaction` (客体间交互，双客体时优先，v1.2 为「接触叙事」) — 必须明确三点：① 接触状态（已接触 / 未接触 / 即将接触）；② 接触媒介（直接接触 / 工具中介 / 介质传递 / 接近未触）；③ 动作过程（把关系动词展开成动作变化，如追逐 = 逼近→闪避→接触或未接触）。同时写清接触类型（点/线/面）、力方向与反作用、可观察结果。pass_criteria 必须能判断「A 与 B 到底接触没有」：已接触→接触点与方式可指认；未接触→两者间有明确空隙，不得画"假接触"。可在画面中逐项核对，不是形容词。
 - `aesthetic` (美学基调，轻量) — 单一视觉焦点；光影氛围统一且不违反 optics；主色调 ≤3 且统一；纵深层次（空气透视/浅景深）。物理真实优先，美学不得引入画面内不存在的元素。
 
 ## Local 5B LLM (preferred engine)
@@ -73,10 +73,14 @@ lower (static, no reasoning about trajectory/causality) but the skill still work
 - Instruct the model to REASON about physics, not just pad adjectives: infer gravity direction,
   predict the object's trajectory, and state the causal chain.
 - Forbid inventing new subjects; only add physically-grounded context to what the user gave.
-- When the base prompt has two or more objects (A & B), require the model to SPECIFY the
-  interaction with structured fields — relation verb, contact type (point/line/surface),
-  force direction & reaction, material-pair response, observable result — so the checklist
-  item is verifiable, not vague.
+- When the base prompt has two or more objects (A & B), require the model to write a CONTACT
+  NARRATIVE, not a vague verb: contact state (contacted / not contacted / about to contact),
+  contact medium (direct / via tool / through medium / proximity only), and action dynamics
+  (chase = approach → dodge → close or miss). The checklist must let the user judge whether A
+  and B actually touched.
+- After enhancement, require the model to SELF-REVIEW and drop redundant phrasing: the same
+  physical meaning should appear once, keeping the more specific sentence. No "same thing
+  said twice in different words".
 - Aesthetic is a light garnish: single visual focus, unified lighting (must not violate
   optics), ≤3 cohesive hues, depth layers. Physics wins on any conflict.
 - Always output valid JSON for the checklist (the script parses it).
