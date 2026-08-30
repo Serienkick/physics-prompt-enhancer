@@ -9,6 +9,7 @@ image models (e.g. ChronoEdit's PBench-Edit: gravity, support contact, trajector
 consistency, causal effect). This skill applies them at the *prompt* layer instead of the
 *pixel* layer.
 
+**v1.3 (2026-08-30):** + `character` (人物骨骼系统：基于人物建模的骨骼层级/绑定权重、稳定性机制、操作空间拓展；详见 `skeleton_system.md`)。
 **v1.2 (2026-08-23):** Interaction 深化为「接触叙事」——接触状态（已接触/未接触/即将接触）
 + 接触媒介（直接/工具/介质/接近未触）+ 动作过程（追逐=逼近→闪避→接触或未接触）。
 **v1.1 (2026-08-23):** + `interaction` (客体间交互：把两个客体的互动写具体、写客观)；
@@ -163,6 +164,40 @@ composition, cohesive 2-3 color palette, atmospheric perspective, shallow depth 
 
 **Pass criteria:** 一眼找到主体；阴影方向与光源仍自洽；画面不杂乱（色相克制）；
 近景清晰、远景淡出。
+
+---
+
+## 8. Character (人物骨骼系统) ★ v1.3 新增
+**适用:** 主体为**人形/角色**（humanoid）且 `target` ∈ {video, 3d}（单张 image 可选）。
+角色"看起来对"依赖于骨骼（骨骼层级 rig）与绑定（skinning），而非只画一个摆好姿势的网格。
+完整说明见 `references/skeleton_system.md`。
+
+**核心：把角色的骨骼/姿态/动作写成可逐项核对的约束——**
+
+**① 骨骼系统设计（层级 + 绑定）:**
+- 标准人形层级：root→pelvis→spine×3→clavicle→arm→hand；neck→head；thigh→calf→foot。旋转相对父级。
+- 骨名约定：UE5/Unity-Humanoid 兼容（root, pelvis, spine_01..03, clavicle_l/r, upperarm_l/r, lowerarm_l/r, hand_l/r, neck_01, head, thigh_l/r, calf_l/r, foot_l/r, ball_l/r）；手指 thumb/index/middle/ring/pinky ×3；统一 `_l`/`_r` 后缀。
+- 绑定 = T-pose / A-pose 且所有 transform 归零后绑定；每顶点 ≤4 骨骼影响且权重归一（sum=1.0）。避免"扭糖纸"畸形（腋下/手腕/膝盖/手指）。
+
+**② 稳定性机制:**
+- 物理约束：关节限位（swing 锥 + twist 带，软约束优先）；质量分布（相邻质量比 <3:1）；阻尼（远端高）；碰撞过滤（自碰撞按骨对开关）。
+- 惯性平衡：倒立摆 + 重心 COM 落在支撑面（脚底投影）内；COM 随姿态偏移时躯干反向前倾补偿；lean = f(加速度) 跨脊柱分配。
+- 碰撞响应：肢体胶囊/躯干盒/头球 collider + hinge/ball 关节约束；固定步长 + 迭代求解；必要时对高速部件开启 CCD。
+- 防穿模/防抖动：质量比 <3:1 + 轴对齐惯性重算；抖动→提高远端角阻尼、降低回弹、限制最大角速度；脚滑→foot-gluing 状态机 + 平滑 IK 目标。
+
+**③ 操作空间拓展:**
+- 多关节联动：FK（父级驱动子级，脊柱/手臂弧）vs IK（给末端目标反解关节角，落地/够物必用）；FABRIK 用于手臂/长链、CCD 用于短链快修；程序化脚部放置 / look-at / 三点追踪。
+- 动作捕捉接入：FBX/BVH/BIP/VMD 格式；pipeline = 采集→重定向（retarget，源关节→目标关节+比例缩放）→清理→应用（跳过重定向会浮脚/破接触）；2026 无标记 mocap（Move.ai / DeepMotion / Plask / QuickMagic）手机视频→FBX/BVH。
+- 自定义姿态：叠加层（呼吸/前倾）+ Avatar Mask 限定作用域；正确关节朝向+干净层级才能干净混合。
+
+**Descriptor phrases (EN):** `anatomically correct joint hierarchy, humanoid bone naming, T-pose bind, clean normalized skin weights, no twist artifact, center of mass over support, inertial lean, collision-aware limbs, IK/FK-linked joints, motion-capture-style poses, stable contacts, no jitter`
+
+**Checklist rule:** 骨骼层级与人体结构对应、绑定干净权重归一、关节弯曲无网格撕裂；姿态在解剖限位内、重心在支撑面内不无故失衡、肢体不穿模、运动无抖动；多关节联动合理、接触点保持、动作连贯无瞬移。
+
+**Pass criteria（逐项对照画面核对）:**
+- 肩/腕/膝弯曲处无塌陷或穿模；手指不粘连；
+- 站立/运动时效心在脚底支撑区内；受冲量时按惯性倾倒而非悬空；肢体不与躯干互穿；
+- 手脚接触面在姿态变化中保持接触；叠加的呼吸/前倾不破坏主体姿态；无可见抖动。
 
 ---
 
