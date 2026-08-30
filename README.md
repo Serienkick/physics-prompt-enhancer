@@ -1,5 +1,9 @@
 # Physics Prompt Enhancer · 物理真实感提示词增强器
 
+> **v1.5 新增：** 视频模型提示词长度护栏 —— 识别可灵/Runway/Veo/Hailuo 等模型的提示词上限，超限自动压缩；**本地模型优先智能压缩**，规则裁剪兜底（三层）。并接入 `character` 人物骨骼系统维度。
+>
+> **v1.3 新增：** `character`（人物骨骼系统）—— 解剖关节层级、重心稳定机制、IK/FK 操作空间；详见 `references/skeleton_system.md`。
+>
 > **v1.2 新增：** 交互升级为「接触叙事」——写清接触状态（已接触/未接触/即将接触）、接触媒介（直接/工具/介质/接近未触）、动作过程（追逐=逼近→闪避→接触或未接触）；增强后自动审校去重，删语义重复、只留更具体句。
 >
 > **v1.1 新增：** `interaction`（两个客体间的互动写具体、写客观）+ `aesthetic`（物理正确之上的轻量美学点缀）。
@@ -43,8 +47,11 @@ not the pixel layer. Lightweight, portable, zero cloud GPU cost.
 
 ## Features · 功能
 
-- 🧲 **7 dimensions** — optics, mechanics, materials, scale, causality, **interaction**, **aesthetic**
-- 七大维度：光学、力学、材质、尺度比例、因果一致、**客体间交互**、**美学基调**
+- 🧲 **8 dimensions** — optics, mechanics, materials, scale, causality, interaction, aesthetic, **character**
+- 八大维度：光学、力学、材质、尺度比例、因果一致、客体间交互、美学基调、**人物骨骼系统**
+- 🦴 **character** — for humanoid/character subjects: anatomical joint hierarchy, binding & weight
+  normalization, balance/COM stability, IK/FK operation space. No clipping, no jitter.
+- 人物骨骼系统：人物/角色类主体 —— 解剖关节层级、绑定与权重归一、重心稳定机制、IK/FK 操作空间；不穿模、不抖动。详见 `references/skeleton_system.md`
 - 🤝 **interaction** — written as a "contact narrative": contact state (contacted / not
   contacted / about to contact), contact medium (direct / via tool / through medium / proximity),
   action dynamics (chase = approach→dodge→close or miss)
@@ -65,6 +72,12 @@ not the pixel layer. Lightweight, portable, zero cloud GPU cost.
 - 规则兜底：没装模型也能离线出活
 - 🌏 **bilingual output** — Chinese prose + a compact English tag string for generators
 - 中英双输出：中文散文 + 可直接粘贴进生成器的英文 tag 串
+- 🎬 **video-model length guard** — detect the chosen video model's prompt cap (Runway 1000 /
+  Kling 2500 / Sora 2 2500 / Veo ~4000 / Hailuo·MiniMax 7000 …) and auto-compress if it overflows
+- 视频模型长度护栏：识别可灵/Runway/Veo 等模型的提示词上限，超限自动压缩，避免被截断/报错
+- 🧠 **local-model compression** — when over cap, the *same* local 5B LLM does the smart trim
+  first (method=`local-model`); a rule-based trimmer is the final hard guarantee
+- 本地模型压缩：超限时先用同一个本地模型智能压缩，确定性裁剪兜底，确保一定 ≤ 上限
 
 ---
 
@@ -118,24 +131,26 @@ python scripts/enhance.py PROMPT [options]
 
   PROMPT                     base creative prompt / 基础提示词（必填）
   --target   {image,video,3d}   generation target (default image) / 目标类型
-  --dims    csv                subset of: optics,mechanics,materials,scale,causality,interaction,aesthetic
+  --dims    csv                subset of: optics,mechanics,materials,scale,causality,interaction,aesthetic,character
   --lang    {zh,en,both}        output language (default both) / 输出语言
-  --model   name               Ollama model tag (default qwen3:4b)
+  --model   name               Ollama model tag (default qwen3:4b) / 本地增强模型（非视频生成模型）
   --endpoint url               OpenAI-compatible base URL (default http://localhost:11434/v1)
   --temperature float          (default 0.4)
+  --video-model name          video gen model whose prompt cap to enforce (kling/runway/sora/veo/hailuo/luma/pika/vidu) / 视频生成模型名（触发长度护栏）
   --fallback                   force rule-based expansion (skip model) / 强制规则兜底
 ```
 
 Examples · 示例：
 ```bash
-python scripts/enhance.py "a knight swinging a sword" --target video --dims optics,mechanics,causality
+python scripts/enhance.py "a knight swinging a sword" --target video --dims optics,mechanics,causality,character
 python scripts/enhance.py "rainy neon street" --lang en --model qwen3:4b
+python scripts/enhance.py "战士挥剑劈砍，慢镜头，雨夜霓虹" --target video --video-model kling --lang en   # 超限自动压缩到 ≤2500
 python scripts/enhance.py "..." --endpoint http://localhost:1234/v1   # LM Studio / vLLM
 ```
 
 ---
 
-## The 7 dimensions · 七大维度
+## The 8 dimensions · 八大维度
 
 | Dimension | Inject · 注入 | Checklist rule · 检查项 |
 |---|---|---|
@@ -146,6 +161,7 @@ python scripts/enhance.py "..." --endpoint http://localhost:1234/v1   # LM Studi
 | **causality** 因果 | explicit cause→effect (splash⇒impact, bent⇒force) | every effect has a cause present in frame; no teleporting |
 | **interaction** 交互 | contact narrative: contact state (contacted/not/about-to-contact); medium (direct/via tool/through medium/proximity); action dynamics; contact type; reaction force | can judge whether A & B actually touched; if contacted → contact point & way identifiable; if not → clear gap, no fake-contact marks |
 | **aesthetic** 美学 | single visual focus; unified lighting (physics-safe); ≤3 cohesive hues; atmospheric perspective / shallow DoF | one clear focus; shadows still pass optics; restrained palette; depth layers |
+| **character** 骨骼 | anatomical joint hierarchy + binding/weight; COM balance; IK/FK joints | bones align with body; no clipping/jitter; COM inside support polygon; contacts kept |
 
 For `video`, the checklist also gains temporal rules: trajectory continuity, motion-blur direction,
 secondary motion (hair/cloth lag), and conservation (no spawn/despawn without cause), plus
@@ -177,6 +193,52 @@ The script prints one JSON object with two keys:
 
 ---
 
+## Video-model prompt-length guard · 视频模型提示词长度护栏
+
+各视频生成模型的提示词上限不同，超限会被截断或报 400/422。传 `--video-model` 后，增强器会
+**识别上限，超限自动压缩**，确保贴进生成器的文本一定 ≤ 上限。
+
+Video models have different prompt caps; overflow gets truncated or errors out. Pass `--video-model`
+and the enhancer auto-detects the cap and compresses if needed.
+
+**Three layers (local model first) · 三层（本地模型优先）**
+1. **Soft self-limit** — the system prompt tells the model the cap so it stays under it while writing.
+   软上限：生成时把上限写进指令，模型自我约束。
+2. **Local-model smart compression** — when over cap and the local LLM is reachable, it re-writes the
+   prompt to ≤ cap while keeping the subject + all physics-critical clauses.
+   本地模型智能压缩：超限且本地模型可达时，用它重写到上限内（保留主体+全部物理关键信息）。
+3. **Rule-based trimmer (always on)** — greedy keep-subject + physics clauses; hard guarantee ≤ cap.
+   确定性裁剪兜底：始终生效，贪心保主体+物理子句，硬性兜底。
+
+The output gains a `prompt_compression` object so you can verify which layer fired:
+输出会多一个 `prompt_compression` 字段，标明走的是哪一层：
+
+```json
+"prompt_compression": {
+  "video_model": "kling", "limit_chars": 2500, "limit_type": "hard",
+  "original_chars": 3120, "compressed_chars": 2478, "applied": true,
+  "method": "local-model",
+  "note": "可灵/Kling API 上限 2500 字符"
+}
+```
+
+`method` is `none` (under cap), `local-model` (layer 2) or `rule-based` (layer 3 / `--fallback`).
+`method` 取值：`none`（未超限）/ `local-model`（第 2 层）/ `rule-based`（第 3 层或 `--fallback`）。
+
+| `--video-model` | 上限 chars | 类型 | 备注 |
+|---|---|---|---|
+| runway | 1000 | hard | 官方限制 |
+| kling 可灵 | 2500 (3.0 最高 3072) | hard | 建议 ≤2500 |
+| sora 2 | 2500 | soft | |
+| veo 3/3.1 | 4000 | hard | |
+| hailuo / minimax | 7000 | soft | |
+| luma / pika / vidu | 1000 | soft | |
+| *(none, target=video)* | 2000 | soft | generic 默认护栏 |
+
+> 上限表与来源见 `references/video_model_limits.md`。`--target video` 未指定模型时，默认按 generic(2000) 护栏。
+
+---
+
 ## Example: before → after · 示例
 
 **Base · 原提示词**
@@ -193,6 +255,14 @@ The script prints one JSON object with two keys:
 用清单验收生成图：哪一项不达标就重生成或调提示词。
 > 💡 v1.2 亮点：交互不再只写「追逐」两个字，而是交代**接触状态（未接触）→ 接触媒介（接近未触）→ 动作过程（逼近→闪避→距离未归零）**；验收时一眼判断猫爪与蝶之间有没有空隙、有没有「假接触」。增强语句已去重——同一含义只保留更具体的一句，不换词说两遍。
 
+**Character example · 人物骨骼示例**（v1.3 `character` 维度）
+```
+战士挥剑劈砍
+```
+> EN: `a warrior performing a sword overhead cleave, anatomically rigged humanoid — root→spine→clavicle→upper arm→forearm→hand chain drives the swing, T-pose binding with normalized ≤4-bone weights (no candy-wrapper twist at wrist), knee and elbow bend without mesh tearing, center of mass kept inside the foot support polygon during the lunge, gliding contact between sole and ground, no clipping, no jitter`
+
+**reality_checklist** gains a `character` item: 清单会多出 `character` 项（肩/腕/膝弯曲处无塌陷或穿模；站立/运动时效心在脚底支撑区内；手脚接触面在姿态变化中保持接触、动作连贯无瞬移）。详见 `references/skeleton_system.md`。
+
 ---
 
 ## Local LLM setup · 本地模型
@@ -203,6 +273,15 @@ The script prints one JSON object with two keys:
 ```bash
 ollama pull qwen3:4b          # best zh + physics commonsense / 中英+物理常识最好
 # or: qwen2.5:7b-instruct, gemma3:4b, llama3.1:8b
+```
+
+This repo ships a tuned build. To use it:
+本仓库自带一个调好的模型，导入即可用：
+
+```bash
+# from the repo root / 在仓库根目录执行
+ollama create physics-enhancer:latest -f ollama/Modelfile.gemma3-4b
+python scripts/enhance.py "一个战士挥剑劈砍" --model physics-enhancer:latest --target video --dims character
 ```
 
 Quantized to 4-bit these fit an 8 GB GPU or Apple Silicon and run ~30–50 tok/s.
@@ -230,7 +309,10 @@ When no model is reachable, the script appends the dimension descriptors from
    运行增强器：本地 5B 模型（优先）或规则兜底。
 3. Produce two outputs: `enhanced_prompt` + `reality_checklist`.
    产出两份：增强提示词 + 现实检查清单。
-4. The model is instructed to *reason* about physics (infer gravity, predict trajectory, state
+4. **Video length guard** (if `--video-model`): detect the cap, compress with the local model first,
+   then a rule-based trimmer — `enhanced_prompt` is guaranteed ≤ the cap.
+   **视频长度护栏**（传了 `--video-model` 时）：识别上限，先本地模型压缩、再规则裁剪，确保 ≤ 上限。
+5. The model is instructed to *reason* about physics (infer gravity, predict trajectory, state
    causal chain) — not just pad adjectives. It never invents new subjects.
    模型被要求*推理*物理（推断重力、预测轨迹、写因果链），而非堆形容词；不新增主体。
 
@@ -253,9 +335,13 @@ physics-prompt-enhancer/
 ├── SKILL.md                      # skill definition: workflow + trigger + checklist spec
 ├── README.md                     # this file
 ├── references/
-│   └── physics_dimensions.md     # 7-dimension knowledge core + video rules + fallback template
-└── scripts/
-    └── enhance.py                # local 5B LLM engine (Ollama/LM Studio) + rule-based fallback
+│   ├── physics_dimensions.md     # 8-dimension knowledge core + video rules + fallback template
+│   ├── skeleton_system.md        # character (rigging) module: hierarchy, stability, IK/FK
+│   └── video_model_limits.md     # video-model prompt-cap table + 3-layer compression strategy
+├── scripts/
+│   └── enhance.py                # local 5B LLM engine (Ollama/LM Studio) + rule-based fallback
+└── ollama/
+    └── Modelfile.gemma3-4b       # tuned local model build (physics-enhancer:latest)
 ```
 
 ---
