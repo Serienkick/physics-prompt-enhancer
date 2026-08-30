@@ -47,37 +47,24 @@ not the pixel layer. Lightweight, portable, zero cloud GPU cost.
 
 ## Features · 功能
 
-- 🧲 **8 dimensions** — optics, mechanics, materials, scale, causality, interaction, aesthetic, **character**
-- 八大维度：光学、力学、材质、尺度比例、因果一致、客体间交互、美学基调、**人物骨骼系统**
-- 🦴 **character** — for humanoid/character subjects: anatomical joint hierarchy, binding & weight
-  normalization, balance/COM stability, IK/FK operation space. No clipping, no jitter.
-- 人物骨骼系统：人物/角色类主体 —— 解剖关节层级、绑定与权重归一、重心稳定机制、IK/FK 操作空间；不穿模、不抖动。详见 `references/skeleton_system.md`
-- 🤝 **interaction** — written as a "contact narrative": contact state (contacted / not
-  contacted / about to contact), contact medium (direct / via tool / through medium / proximity),
-  action dynamics (chase = approach→dodge→close or miss)
-- 客体间交互：「接触叙事」——接触状态（已接触/未接触/即将接触）、接触媒介（直接/工具/介质/接近未触）、动作过程（追逐=逼近→闪避→接触或未接触）。**到底接触没有、怎么接触的、通过什么方式**
-- 🧹 **self-reviewed & deduped** — after enhancement the prompt is re-examined: redundant
-  phrasing is dropped, only the more specific sentence stays
-- 自动审校去重：增强后重新审视语句，删除语义重复，只保留更具体的表述
-- 🎨 **aesthetic** — light garnish: single visual focus, unified lighting (never breaks optics),
-  ≤3 cohesive hues, depth layers. Physics wins on conflict
-- 美学基调：轻量点缀——单一视觉焦点、统一光影（不违反光学）、克制色调、纵深层次；物理优先
-- ✅ **reality checklist** — a JSON list of physics constraints the result *must* satisfy
-- 现实检查清单：一份结果必须通过的物理约束（JSON）
-- 🔌 **model-agnostic** — works in front of any image/video/3D generator
-- 模型无关：架在任意生图 / 生视频 / 3D 工具前都能用
-- 🖥️ **local 5B LLM** — preferred engine runs on Ollama / LM Studio, free & private
-- 本地 5B 模型：推荐 Ollama / LM Studio 跑本地模型，免费且私有
-- 🪢 **rule-based fallback** — still works offline with no model installed
-- 规则兜底：没装模型也能离线出活
-- 🌏 **bilingual output** — Chinese prose + a compact English tag string for generators
-- 中英双输出：中文散文 + 可直接粘贴进生成器的英文 tag 串
-- 🎬 **video-model length guard** — detect the chosen video model's prompt cap (Runway 1000 /
-  Kling 2500 / Sora 2 2500 / Veo ~4000 / Hailuo·MiniMax 7000 …) and auto-compress if it overflows
-- 视频模型长度护栏：识别可灵/Runway/Veo 等模型的提示词上限，超限自动压缩，避免被截断/报错
-- 🧠 **local-model compression** — when over cap, the *same* local 5B LLM does the smart trim
-  first (method=`local-model`); a rule-based trimmer is the final hard guarantee
-- 本地模型压缩：超限时先用同一个本地模型智能压缩，确定性裁剪兜底，确保一定 ≤ 上限
+- 🧲 **8 physics dimensions** — optics · mechanics · materials · scale · causality, plus three
+  human/object-aware layers: **interaction** (contact narrative: state/medium/dynamics),
+  **aesthetic** (light garnish, physics-first), and **character** (anatomical rig hierarchy,
+  COM balance, IK/FK; no clipping/jitter — see `references/skeleton_system.md`).
+  八大物理维度：光学·力学·材质·尺度·因果，外加三层「人/物感知」——客体交互（接触叙事）、美学基调（轻量点缀、物理优先）、人物骨骼（关节层级/重心稳定/IK-FK，不穿模不抖）。
+- 🧹 **self-checked + checklist** — after enhancement the prompt is auto-deduped (keep the more
+  specific phrasing) and emits a JSON `reality_checklist` of physics constraints to verify the result.
+  增强后自动去重（只留更具体表述），并产出 JSON「现实检查清单」作为验收标准。
+- 🎬 **video-model length guard** — detects the target model's prompt cap (Runway 1000 / Kling
+  2500 / Sora 2 2500 / Veo ~4000 / Hailuo·MiniMax 7000 …); on overflow the *same* local 5B LLM
+  trims smartly first (`method=local-model`), a rule-based trimmer is the hard guarantee.
+  视频模型长度护栏：识别可灵/Runway/Veo 等上限，超限时优先用同一个本地模型智能压缩，规则裁剪兜底。
+- 🔌 **model-agnostic & bilingual** — sits in front of any image/video/3D generator; outputs
+  Chinese prose + a compact English tag string ready to paste.
+  模型无关：架在任意生图/生视频/3D 工具前；中英双输出（中文散文 + 可直接粘贴的英文 tag）。
+- 🖥️ **runs on a local 5B LLM** — preferred engine on Ollama / LM Studio (free, private); falls
+  back to a fully offline rule-based mode with no model installed.
+  本地 5B 模型驱动（Ollama/LM Studio，免费私有），无模型时也能离线规则兜底出活。
 
 ---
 
